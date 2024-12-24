@@ -143,3 +143,55 @@ class ExperienceAnalyzer:
         })
 
         return cluster_stats
+
+    def get_experience_metrics(self) -> pd.DataFrame:
+        """Get experience metrics for all users."""
+        # Calculate TCP retransmission rate
+        tcp_metrics = self._calculate_tcp_metrics()
+        if tcp_metrics is None:
+            return None
+
+        # Calculate throughput
+        throughput = self.analyze_throughput_distribution()
+        if throughput is None:
+            return None
+
+        # Combine metrics
+        metrics = pd.DataFrame(index=self.xdr_data['msisdn'].unique())
+        
+        # Add TCP metrics
+        metrics['tcp_retransmission_rate'] = tcp_metrics['retransmission_rate']
+        metrics['tcp_rtt'] = tcp_metrics['rtt']
+        
+        # Add throughput metrics (join with metrics DataFrame)
+        metrics = metrics.join(throughput['mean'].rename('avg_throughput'))
+        
+        # Fill missing values with mean
+        metrics = metrics.fillna(metrics.mean())
+        
+        return metrics
+
+    def _calculate_tcp_metrics(self) -> pd.DataFrame:
+        """Calculate TCP metrics including retransmission rate and RTT."""
+        try:
+            # Group by user
+            user_metrics = self.xdr_data.groupby('msisdn').agg({
+                'TCP Retransmission': 'sum',
+                'TCP Retransmission Count': 'sum',
+                'RTT': 'mean'
+            }).fillna(0)
+            
+            # Calculate retransmission rate
+            user_metrics['retransmission_rate'] = (
+                user_metrics['TCP Retransmission Count'] / 
+                user_metrics['TCP Retransmission']
+            ).fillna(0)
+            
+            # Rename RTT column
+            user_metrics = user_metrics.rename(columns={'RTT': 'rtt'})
+            
+            # Keep only the calculated metrics
+            return user_metrics[['retransmission_rate', 'rtt']]
+        except Exception as e:
+            print(f"Error calculating TCP metrics: {e}")
+            return None

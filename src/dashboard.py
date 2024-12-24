@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from user_overview_analysis import UserOverviewAnalyzer
 from user_engagement_analysis import UserEngagementAnalyzer
 from experience_analytics import ExperienceAnalyzer
+from satisfaction_analysis import SatisfactionAnalyzer
 
 def load_data():
     """Load and preprocess the XDR data."""
@@ -28,12 +29,14 @@ def main():
     # Initialize analyzers
     overview_analyzer = UserOverviewAnalyzer(data)
     engagement_analyzer = UserEngagementAnalyzer(data)
+    experience_analyzer = ExperienceAnalyzer(data)
+    satisfaction_analyzer = SatisfactionAnalyzer(engagement_analyzer, experience_analyzer)
     
     # Sidebar
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Select Page", 
                            ["Overview", "User Engagement", "Application Analysis", 
-                            "Usage Patterns", "Experience"])
+                            "Usage Patterns", "Experience", "Satisfaction"])
     
     if page == "Overview":
         show_overview_page(overview_analyzer)
@@ -43,8 +46,10 @@ def main():
         show_application_page(engagement_analyzer)
     elif page == "Usage Patterns":
         show_usage_patterns(engagement_analyzer)
+    elif page == "Experience":
+        show_experience_page(experience_analyzer)
     else:
-        show_experience_page(data)
+        show_satisfaction_page(satisfaction_analyzer)
 
 def show_overview_page(analyzer):
     st.header("📊 User Overview Analysis")
@@ -198,17 +203,15 @@ def show_usage_patterns(analyzer):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-def show_experience_page(data):
+def show_experience_page(analyzer):
     st.header("🎯 User Experience Analysis")
-    
-    experience_analyzer = ExperienceAnalyzer(data)
     
     # Throughput Analysis
     st.subheader("📶 Network Performance")
     col1, col2 = st.columns(2)
     
     with col1:
-        throughput = experience_analyzer.analyze_throughput_distribution()
+        throughput = analyzer.analyze_throughput_distribution()
         if throughput is not None:
             # Convert to DataFrame for plotting
             df_throughput = throughput.head(10).reset_index()
@@ -223,7 +226,7 @@ def show_experience_page(data):
     
     with col2:
         # User clusters
-        clusters = experience_analyzer.cluster_users(k=3)
+        clusters = analyzer.cluster_users(k=3)
         if clusters is not None:
             cluster_counts = pd.Series(clusters).value_counts()
             fig = px.pie(values=cluster_counts.values, 
@@ -231,6 +234,49 @@ def show_experience_page(data):
                         title="User Experience Clusters",
                         labels={'index': 'Cluster', 'value': 'Number of Users'})
             st.plotly_chart(fig, use_container_width=True)
+
+def show_satisfaction_page(analyzer):
+    st.header("🎯 Customer Satisfaction Analysis")
+    
+    # Calculate satisfaction scores
+    satisfaction_df = analyzer.calculate_satisfaction_scores()
+    
+    # Display top satisfied customers
+    st.subheader("Top 10 Most Satisfied Customers")
+    top_customers = analyzer.get_top_satisfied_customers()
+    st.dataframe(top_customers)
+    
+    # Show satisfaction model results
+    st.subheader("Satisfaction Prediction Model")
+    model, scores = analyzer.build_satisfaction_model()
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Training Score", f"{scores['train_score']:.3f}")
+    with col2:
+        st.metric("Test Score", f"{scores['test_score']:.3f}")
+    
+    # Display cluster analysis
+    st.subheader("Customer Segments")
+    cluster_stats = analyzer.cluster_satisfaction_scores()
+    
+    # Visualization of clusters
+    fig = px.scatter(
+        satisfaction_df,
+        x='engagement_score',
+        y='experience_score',
+        color='cluster',
+        title='Customer Segments based on Engagement and Experience',
+        labels={
+            'engagement_score': 'Engagement Score',
+            'experience_score': 'Experience Score',
+            'cluster': 'Segment'
+        }
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Display cluster statistics
+    st.subheader("Segment Statistics")
+    st.dataframe(cluster_stats)
 
 if __name__ == "__main__":
     main()
