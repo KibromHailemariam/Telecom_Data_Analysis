@@ -1,91 +1,98 @@
-# Telecom Data Analysis
+# Telecom User Overview Analysis
 
-A comprehensive telecom data analysis project with an interactive dashboard for visualizing user behavior, handset analysis, and network performance metrics.
+## Project Overview
+This project analyzes telecom user behavior and handset usage patterns, focusing on understanding user preferences and data consumption patterns.
 
-## Features
+## Task 1: User Overview Analysis
 
-- Interactive dashboard using Streamlit
-- User behavior analysis
-- Handset and manufacturer analysis
-- Network performance metrics
-- Advanced analytics with PCA
-- Time series analysis of data usage
+### Analysis Components
 
-## Project Structure
+1. **Handset Analysis**
+   - Identifies top 10 handsets used by customers
+   - Analyzes top 3 handset manufacturers
+   - Shows top 5 handsets per manufacturer
+   - Calculates market share for manufacturers
 
-```
-.
-├── src/               # Source code
-├── tests/             # Unit tests
-├── notebooks/         # Jupyter notebooks
-├── data/             # Data directory (not tracked in git)
-├── plots/            # Generated visualizations
-└── report/           # Project documentation
-```
+2. **User Behavior Analysis**
+   - Session count and duration analysis
+   - Data consumption patterns
+   - Usage trends across different applications
+   - User segmentation by duration deciles
 
-## Setup
+3. **Application Usage Analysis**
+   - Data usage distribution across applications
+   - Active users per application
+   - Upload/download patterns
+   - Application correlations
 
-1. Clone the repository:
+4. **Statistical Analysis**
+   - Descriptive statistics
+   - Correlation analysis
+   - Principal Component Analysis (PCA)
+   - Data distribution analysis
+
+### Visualizations Generated
+- Top handsets distribution
+- Manufacturer market share
+- Data usage by duration decile
+- Session distribution
+- Application usage distribution
+- Active users per application
+- Application correlation matrix
+- PCA analysis results
+
+## Setup and Installation
+
+### Prerequisites
+- Python 3.8+
+- Required packages listed in requirements.txt
+
+### Installation
 ```bash
-git clone https://github.com/NAV-369/Telecom-Data-Analysis.git
-cd Telecom-Data-Analysis
-```
-
-2. Create and activate virtual environment:
-```bash
+# Create and activate virtual environment (optional but recommended)
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
 
-3. Install dependencies:
-```bash
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-## Data Setup
+### Data Preparation
+1. Place your telecom XDR data file in the `data` directory
+2. Ensure the data file is named `xdr_data.parquet`
 
-The project requires two main data files that are not included in the repository due to their size:
-- `data/telecom.sql`: SQL dump file containing the telecom database
-- `data/xdr_data.parquet`: Parquet file containing the XDR data
-
-To set up the data:
-1. Create a `data` directory in the project root if it doesn't exist
-2. Place the required data files in the `data` directory
-3. The application will automatically detect and use these files
-
-## Running the Dashboard
-
-To run the interactive dashboard:
+### Running the Analysis
 ```bash
-streamlit run src/dashboard.py
+python src/main.py
 ```
 
-The dashboard will be available at `http://localhost:8501`
+### Output
+The analysis will generate:
+1. Detailed statistics in the console output
+2. Visualizations in the `plots` directory
 
-## Features
+## Project Structure
+```
+.
+├── data/               # Data directory
+│   └── xdr_data.parquet
+├── plots/              # Generated visualizations
+├── src/               
+│   ├── main.py              # Main script to run analysis
+│   └── user_overview_analysis.py  # Analysis implementation
+├── requirements.txt    # Project dependencies
+└── README.md          # Project documentation
+```
 
-### User Behavior Analysis
-- Data usage patterns
-- Session analysis
-- Application usage breakdown
-- User segmentation
+## Results
+The analysis provides insights into:
+1. Most popular handsets and manufacturers
+2. User behavior patterns and preferences
+3. Application usage distribution
+4. Data consumption patterns
+5. Statistical relationships between different metrics
 
-### Handset Analysis
-- Top handset models
-- Manufacturer market share
-- Model-specific metrics
-
-### Network Performance
-- Throughput analysis
-- RTT measurements
-- TCP retransmission analysis
-
-## Contributing
-
-1. Create a new branch for your feature
-2. Make your changes
-3. Submit a pull request
+Check the generated plots in the `plots` directory for visual representations of the analysis results.
 
 ## License
-
-[MIT License](LICENSE)
+MIT License
