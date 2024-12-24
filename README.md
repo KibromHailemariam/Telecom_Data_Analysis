@@ -1,49 +1,91 @@
-# Telecom User Engagement Analysis
+# Telecom User Engagement Analysis Dashboard
 
-## Project Overview
-This project focuses on analyzing user engagement metrics in telecom data using advanced data processing and visualization techniques.
+A comprehensive dashboard for analyzing telecom user engagement patterns and behaviors.
 
-## Task 2: User Engagement Analysis
+## Features
 
-### Key Components
-- Data Preparation
-- User Engagement Metrics Calculation
-- Interactive Streamlit Dashboard
+### 1. Overview
+- Basic statistics about user engagement
+- Summary metrics and data distribution
 
-### Key Features
-- Session frequency analysis
-- Traffic volume tracking
-- User clustering
-- Top user identification
+### 2. User Engagement Analysis
+- Session frequency distribution
+- Total traffic distribution
+- Top users analysis
 
-## Setup and Installation
+### 3. Application Usage Analysis
+- Total traffic by application
+- Top users per application
+- Application usage patterns
 
-### Prerequisites
-- Python 3.8+
-- Pandas
-- Streamlit
-- Scikit-learn
+### 4. Clustering Analysis
+- K-means clustering of users
+- Cluster characteristics visualization
+- User distribution across clusters
 
-### Running the Dashboard
+### 5. Advanced Analysis
+- Correlation analysis between engagement metrics
+- Time-based usage patterns
+- User segmentation analysis
+- Application usage patterns
+- User behavior patterns through radar charts
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/telecom-analysis.git
+cd telecom-analysis
+```
+
+2. Create a virtual environment and activate it:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+## Usage
+
+1. Place your telecom data file (xdr_data.parquet) in the `data` directory
+
+2. Run the Streamlit dashboard:
 ```bash
 streamlit run src/dashboard.py
 ```
 
+3. Access the dashboard in your web browser at http://localhost:8501
+
 ## Project Structure
-- `src/`: Source code directory
-  - `dashboard.py`: Streamlit interactive dashboard
-  - `user_engagement.py`: User engagement analysis logic
-  - `data_preparation.py`: Data loading and preprocessing
 
-## Detailed Report
-For a comprehensive analysis, please refer to `report/Task2_Report.md`
+```
+telecom-analysis/
+├── data/
+│   └── xdr_data.parquet
+├── src/
+│   ├── dashboard.py
+│   ├── main.py
+│   ├── user_engagement_analysis.py
+│   └── user_overview_analysis.py
+├── requirements.txt
+└── README.md
+```
 
-## Contributing
+## Dependencies
 
-1. Create a new branch for your feature
-2. Make your changes
-3. Submit a pull request
+- pandas
+- numpy
+- streamlit
+- plotly
+- scikit-learn
+- matplotlib
+- seaborn
+- kneed
 
 ## License
 
-[MIT License](LICENSE)
+MIT License

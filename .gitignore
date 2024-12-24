@@ -24,6 +24,7 @@ wheels/
 venv/
 ENV/
 env/
+.env/
 
 # IDE
 .idea/
@@ -31,50 +32,20 @@ env/
 *.swp
 *.swo
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# Data files
+*.csv
+*.parquet
+*.xlsx
+*.xls
 
-# Distribution / packaging
-.Python
-build/
+# Logs
+*.log
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-
-# Large data files
-data/*.sql
-data/*.parquet
-data/*.csv
-data/*.xlsx
-data/*.db
-
-# Local development settings
+# Local development
 .env
 .env.local
 .env.*.local
 
-# Logs
-*.log
-logs/
-
-# Database
-*.db
-*.sqlite3
-
-# OS generated files
+# System files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
