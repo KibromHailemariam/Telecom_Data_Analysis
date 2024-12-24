@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from user_overview_analysis import UserOverviewAnalyzer
 from user_engagement_analysis import UserEngagementAnalyzer
-from experience_analysis import ExperienceAnalyzer
+from experience_analytics import ExperienceAnalyzer
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
@@ -137,68 +137,57 @@ def analyze_user_engagement(data):
 def analyze_user_experience(data):
     """Analyze user experience metrics."""
     print("\nTask 3: Experience Analytics")
-    print("=" * 50)
+    print("=" * 50 + "\n")
     
     # Initialize experience analyzer
     experience_analyzer = ExperienceAnalyzer(data)
     
-    # Task 3.1: Aggregate user metrics
-    print("\nTask 3.1: Aggregated User Metrics")
-    print("-" * 30)
-    user_metrics = experience_analyzer.aggregate_user_metrics()
-    print(user_metrics.head())
+    # Task 3.1: Aggregate metrics per customer
+    print("Task 3.1 - Customer Metrics Aggregation\n")
+    metrics = experience_analyzer.user_metrics
+    if metrics is not None:
+        print("Sample of aggregated metrics per customer:")
+        print(metrics.head())
+        print()
     
-    # Task 3.2: Analyze extreme values
-    print("\nTask 3.2: Extreme Values Analysis")
-    print("-" * 30)
+    # Task 3.2: Compute extreme values
+    print("\nTask 3.2 - Extreme Value Analysis\n")
+    metrics = ['TCP DL Retrans. Vol (Bytes)', 'Avg RTT DL (ms)', 'Avg Bearer TP DL (kbps)']
     
-    # TCP analysis
-    tcp_values = experience_analyzer.get_extreme_values('Total TCP Retrans')
-    print("\nTCP Retransmission Values:")
-    print(f"Top 10: {tcp_values['top']}")
-    print(f"Bottom 10: {tcp_values['bottom']}")
-    print(f"Most Frequent: {tcp_values['most_frequent']}")
-    
-    # RTT analysis
-    rtt_values = experience_analyzer.get_extreme_values('Avg RTT')
-    print("\nRTT Values:")
-    print(f"Top 10: {rtt_values['top']}")
-    print(f"Bottom 10: {rtt_values['bottom']}")
-    print(f"Most Frequent: {rtt_values['most_frequent']}")
-    
-    # Throughput analysis
-    throughput_values = experience_analyzer.get_extreme_values('Avg Throughput')
-    print("\nThroughput Values:")
-    print(f"Top 10: {throughput_values['top']}")
-    print(f"Bottom 10: {throughput_values['bottom']}")
-    print(f"Most Frequent: {throughput_values['most_frequent']}")
+    for metric in metrics:
+        print(f"\n{metric}:")
+        top, bottom, frequent = experience_analyzer.get_extreme_values(metric)
+        if top is not None:
+            print("\nTop 10 values:")
+            print(top)
+            print("\nBottom 10 values:")
+            print(bottom)
+            print("\nMost frequent values:")
+            print(frequent)
     
     # Task 3.3: Distribution analysis
-    print("\nTask 3.3: Distribution Analysis")
-    print("-" * 30)
+    print("\nTask 3.3 - Distribution Analysis\n")
     
     # Throughput distribution
-    throughput_stats, _ = experience_analyzer.analyze_throughput_distribution()
     print("\nThroughput Distribution per Handset Type:")
-    print(throughput_stats)
+    throughput_stats = experience_analyzer.analyze_throughput_distribution()
+    if throughput_stats is not None:
+        print(throughput_stats)
     
     # TCP retransmission analysis
-    tcp_stats, _ = experience_analyzer.analyze_tcp_retransmission()
     print("\nTCP Retransmission per Handset Type:")
-    print(tcp_stats)
+    tcp_stats = experience_analyzer.analyze_tcp_retransmission()
+    if tcp_stats is not None:
+        print(tcp_stats)
     
     # Task 3.4: User clustering
-    print("\nTask 3.4: User Experience Clustering")
-    print("-" * 30)
-    cluster_stats, _ = experience_analyzer.cluster_users()
-    print("\nCluster Statistics:")
-    print(cluster_stats)
-    
-    # Get cluster descriptions
-    cluster_descriptions = experience_analyzer.get_cluster_descriptions()
-    print("\nCluster Descriptions:")
-    for cluster, description in cluster_descriptions.items():
-        print(f"\n{description}")
+    print("\nTask 3.4 - User Experience Clustering\n")
+    clusters = experience_analyzer.cluster_users()
+    if clusters is not None:
+        cluster_stats = experience_analyzer.get_cluster_descriptions()
+        if cluster_stats is not None:
+            print("Cluster Statistics:")
+            print(cluster_stats)
 
 def main():
     # Load data

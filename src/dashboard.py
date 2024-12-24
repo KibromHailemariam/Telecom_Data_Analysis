@@ -1,204 +1,161 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
+from user_overview_analysis import UserOverviewAnalyzer
 from user_engagement_analysis import UserEngagementAnalyzer
-import os
+from experience_analytics import ExperienceAnalyzer
 
-# Set page config
-st.set_page_config(
-    page_title="Telecom User Engagement Analysis",
-    page_icon="📱",
-    layout="wide"
-)
-
-# Initialize data loading
-@st.cache_data
 def load_data():
-    """Load and prepare data."""
+    """Load and preprocess the XDR data."""
     try:
-        data_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'xdr_data.parquet')
-        
-        # Read required columns
-        required_cols = [
-            'MSISDN/Number', 'Bearer Id', 'Dur. (ms)',
-            'Social Media DL (Bytes)', 'Social Media UL (Bytes)',
-            'Google DL (Bytes)', 'Google UL (Bytes)',
-            'Email DL (Bytes)', 'Email UL (Bytes)',
-            'Youtube DL (Bytes)', 'Youtube UL (Bytes)',
-            'Netflix DL (Bytes)', 'Netflix UL (Bytes)',
-            'Gaming DL (Bytes)', 'Gaming UL (Bytes)',
-            'Other DL (Bytes)', 'Other UL (Bytes)'
-        ]
-        
-        df = pd.read_parquet(data_path, columns=required_cols)
-        
-        # Convert numeric columns
-        numeric_cols = [col for col in df.columns if 'Bytes' in col or 'ms' in col]
-        df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
-        
-        return df
+        data = pd.read_parquet('data/xdr_data.parquet')
+        return data
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return None
 
-def plot_engagement_metrics(engagement_analyzer):
-    """Plot engagement metrics visualizations."""
+def main():
+    st.set_page_config(page_title="Telecom Analytics Dashboard", layout="wide")
+    
+    st.title("📱 Telecom Analytics Dashboard")
+    
+    # Load data
+    data = load_data()
+    if data is None:
+        return
+    
+    # Initialize analyzers
+    overview_analyzer = UserOverviewAnalyzer(data)
+    engagement_analyzer = UserEngagementAnalyzer(data)
+    
+    # Sidebar
+    st.sidebar.title("Navigation")
+    page = st.sidebar.radio("Select Page", 
+                           ["Overview", "User Engagement", "Application Analysis", 
+                            "Usage Patterns", "Experience"])
+    
+    if page == "Overview":
+        show_overview_page(overview_analyzer)
+    elif page == "User Engagement":
+        show_engagement_page(engagement_analyzer)
+    elif page == "Application Analysis":
+        show_application_page(engagement_analyzer)
+    elif page == "Usage Patterns":
+        show_usage_patterns(engagement_analyzer)
+    else:
+        show_experience_page(data)
+
+def show_overview_page(analyzer):
+    st.header("📊 User Overview Analysis")
+    
     col1, col2 = st.columns(2)
     
+    # Get handset analysis data
+    handset_data = analyzer.analyze_handsets()
+    
     with col1:
-        st.subheader("Session Frequency Distribution")
-        fig = px.histogram(
-            engagement_analyzer.user_metrics,
-            x='session_count',
-            title='Distribution of Session Counts per User',
-            labels={'session_count': 'Number of Sessions', 'count': 'Number of Users'}
-        )
+        st.subheader("Top Handset Manufacturers")
+        manufacturers = handset_data['top_manufacturers']
+        fig = px.pie(values=manufacturers.values, names=manufacturers.index, 
+                    title="Market Share by Manufacturer")
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        st.subheader("Total Traffic Distribution")
-        fig = px.histogram(
-            engagement_analyzer.user_metrics,
-            x='total_traffic',
-            title='Distribution of Total Traffic per User',
-            labels={'total_traffic': 'Total Traffic (bytes)', 'count': 'Number of Users'}
-        )
+        st.subheader("Top Handset Types")
+        handsets = handset_data['top_handsets']
+        fig = px.bar(x=handsets.index, y=handsets.values, 
+                    title="Most Popular Handset Models")
         st.plotly_chart(fig, use_container_width=True)
 
-def plot_app_usage(engagement_analyzer):
-    """Plot application usage visualizations."""
-    st.subheader("Application Usage Analysis")
+def show_engagement_page(analyzer):
+    st.header("👥 User Engagement Analysis")
     
-    # Calculate total traffic per app
-    app_traffic = {}
-    for app, cols in engagement_analyzer.app_cols.items():
-        app_traffic[app] = engagement_analyzer.user_metrics[f'{app}_traffic'].sum()
+    # Session metrics
+    col1, col2, col3 = st.columns(3)
+    metrics = analyzer.user_metrics
     
-    # Create bar chart
-    fig = px.bar(
-        x=list(app_traffic.keys()),
-        y=list(app_traffic.values()),
-        title='Total Traffic by Application',
-        labels={'x': 'Application', 'y': 'Total Traffic (bytes)'}
-    )
+    with col1:
+        st.metric("Avg Sessions per User", f"{metrics['session_count'].mean():.2f}")
+    with col2:
+        st.metric("Avg Duration (min)", f"{metrics['total_duration'].mean():.2f}")
+    with col3:
+        st.metric("Avg Data Usage (MB)", f"{metrics['total_traffic'].mean()/1e6:.2f}")
+    
+    # Traffic distribution
+    st.subheader("📈 Traffic Distribution by Application")
+    app_metrics = {
+        'Social Media': metrics['Social Media_traffic'].sum(),
+        'Google': metrics['Google_traffic'].sum(),
+        'Email': metrics['Email_traffic'].sum(),
+        'Youtube': metrics['Youtube_traffic'].sum(),
+        'Netflix': metrics['Netflix_traffic'].sum(),
+        'Gaming': metrics['Gaming_traffic'].sum(),
+        'Other': metrics['Other_traffic'].sum()
+    }
+    
+    fig = px.pie(values=list(app_metrics.values()), names=list(app_metrics.keys()),
+                 title="Traffic Distribution by Application Type")
     st.plotly_chart(fig, use_container_width=True)
 
-def plot_clustering_results(engagement_analyzer):
-    """Plot clustering analysis visualizations."""
-    st.subheader("User Clustering Analysis")
+def show_application_page(analyzer):
+    st.header("📱 Application Analysis")
     
-    # Get optimal k
-    optimal_k, k_values, inertias = engagement_analyzer.find_optimal_k()
+    # Top users per application
+    st.subheader("Top Users by Application")
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Plot elbow curve
-        fig = px.line(
-            x=k_values, y=inertias,
-            title=f'Elbow Method (Optimal k={optimal_k})',
-            labels={'x': 'Number of Clusters (k)', 'y': 'Inertia'}
-        )
-        fig.add_vline(x=optimal_k, line_dash="dash", line_color="red")
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        # Perform clustering with optimal k
-        cluster_stats = engagement_analyzer.cluster_users(k=optimal_k)
-        
-        # Plot cluster characteristics
-        fig = go.Figure()
-        metrics = ['session_count', 'total_duration', 'total_traffic']
-        for metric in metrics:
-            fig.add_trace(go.Box(
-                y=engagement_analyzer.user_metrics[metric],
-                x=engagement_analyzer.user_metrics['cluster'],
-                name=metric
-            ))
-        fig.update_layout(title='Cluster Characteristics')
-        st.plotly_chart(fig, use_container_width=True)
-
-def show_top_users(engagement_analyzer):
-    """Display top users analysis."""
-    st.subheader("Top Users Analysis")
-    
-    # Get top users per metric
-    top_users = engagement_analyzer.get_top_users()
-    
-    # Display in tabs
+    top_users = analyzer.get_top_users_per_app()
     tabs = st.tabs(list(top_users.keys()))
-    for tab, (metric, users) in zip(tabs, top_users.items()):
+    
+    for tab, (app, users) in zip(tabs, top_users.items()):
         with tab:
-            st.dataframe(users)
-
-def plot_advanced_analysis(engagement_analyzer):
-    """Plot advanced analysis visualizations."""
-    st.subheader("Advanced Engagement Analysis")
+            # Convert bytes to MB for readability
+            users_mb = users.copy()
+            traffic_col = [col for col in users.columns if 'traffic' in col][0]
+            users_mb[traffic_col] = users_mb[traffic_col] / 1e6
+            users_mb = users_mb.round(2)
+            
+            st.dataframe(users_mb.head(10), 
+                        column_config={
+                            'msisdn': 'User ID',
+                            traffic_col: f'{app} Traffic (MB)'
+                        })
     
-    # 1. Correlation Analysis
-    st.write("#### Correlation Analysis")
-    # Calculate correlation matrix for engagement metrics
-    metrics = ['session_count', 'total_duration', 'avg_duration', 'total_traffic', 'avg_traffic']
-    corr_matrix = engagement_analyzer.user_metrics[metrics].corr()
+    # Application usage patterns
+    st.subheader("📊 Usage Patterns by Application")
     
-    # Plot correlation heatmap
-    fig = px.imshow(
-        corr_matrix,
-        title='Correlation Matrix of Engagement Metrics',
-        labels=dict(color="Correlation"),
-        color_continuous_scale='RdBu',
-        aspect='auto'
+    # Get hourly usage patterns
+    hourly_usage = analyzer.xdr_data.groupby(
+        pd.to_datetime(analyzer.xdr_data['Start Time']).dt.hour
+    )[analyzer.app_cols.keys()].sum()
+    
+    # Create line chart
+    fig = go.Figure()
+    for app in analyzer.app_cols.keys():
+        fig.add_trace(go.Scatter(
+            x=hourly_usage.index,
+            y=hourly_usage[app],
+            name=app,
+            mode='lines'
+        ))
+    
+    fig.update_layout(
+        title="Hourly Application Usage",
+        xaxis_title="Hour of Day",
+        yaxis_title="Traffic Volume (bytes)"
     )
     st.plotly_chart(fig, use_container_width=True)
+
+def show_usage_patterns(analyzer):
+    st.header("📊 Usage Pattern Analysis")
     
-    # 2. Time-based Analysis
-    st.write("#### Time-based Analysis")
-    col1, col2 = st.columns(2)
+    # User segments based on total traffic
+    st.subheader("User Segmentation")
     
-    with col1:
-        # Session frequency by hour
-        hourly_sessions = engagement_analyzer.xdr_data.groupby(
-            pd.to_datetime(engagement_analyzer.xdr_data['Start']).dt.hour
-        )['Bearer Id'].count()
-        
-        fig = px.line(
-            x=hourly_sessions.index,
-            y=hourly_sessions.values,
-            title='Session Frequency by Hour',
-            labels={'x': 'Hour of Day', 'y': 'Number of Sessions'}
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        # Traffic volume by hour
-        hourly_traffic = engagement_analyzer.xdr_data.groupby(
-            pd.to_datetime(engagement_analyzer.xdr_data['Start']).dt.hour
-        )['total_traffic'].sum()
-        
-        fig = px.line(
-            x=hourly_traffic.index,
-            y=hourly_traffic.values,
-            title='Traffic Volume by Hour',
-            labels={'x': 'Hour of Day', 'y': 'Total Traffic (bytes)'}
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    
-    # 3. User Segmentation Analysis
-    st.write("#### User Segmentation Analysis")
-    
-    # Create user segments based on engagement metrics
-    engagement_analyzer.user_metrics['traffic_segment'] = pd.qcut(
-        engagement_analyzer.user_metrics['total_traffic'],
-        q=5,
-        labels=['Very Low', 'Low', 'Medium', 'High', 'Very High']
-    )
-    
-    engagement_analyzer.user_metrics['session_segment'] = pd.qcut(
-        engagement_analyzer.user_metrics['session_count'],
+    # Create traffic segments
+    metrics = analyzer.user_metrics
+    metrics['traffic_segment'] = pd.qcut(
+        metrics['total_traffic'],
         q=5,
         labels=['Very Low', 'Low', 'Medium', 'High', 'Very High']
     )
@@ -206,8 +163,8 @@ def plot_advanced_analysis(engagement_analyzer):
     col1, col2 = st.columns(2)
     
     with col1:
-        # Traffic segments distribution
-        segment_counts = engagement_analyzer.user_metrics['traffic_segment'].value_counts()
+        # Traffic segment distribution
+        segment_counts = metrics['traffic_segment'].value_counts()
         fig = px.pie(
             values=segment_counts.values,
             names=segment_counts.index,
@@ -216,125 +173,64 @@ def plot_advanced_analysis(engagement_analyzer):
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        # Session segments distribution
-        segment_counts = engagement_analyzer.user_metrics['session_segment'].value_counts()
-        fig = px.pie(
-            values=segment_counts.values,
-            names=segment_counts.index,
-            title='User Distribution by Session Frequency'
+        # Average session duration by segment
+        avg_duration = metrics.groupby('traffic_segment')['total_duration'].mean()
+        fig = px.bar(
+            x=avg_duration.index,
+            y=avg_duration.values,
+            title='Average Session Duration by User Segment',
+            labels={'x': 'User Segment', 'y': 'Average Duration (minutes)'}
         )
         st.plotly_chart(fig, use_container_width=True)
     
-    # 4. Application Usage Patterns
-    st.write("#### Application Usage Patterns")
+    # User behavior patterns
+    st.subheader("📱 User Behavior Analysis")
     
-    # Calculate app usage percentages
-    app_cols = [col for col in engagement_analyzer.user_metrics.columns if '_traffic' in col]
-    app_usage = engagement_analyzer.user_metrics[app_cols].sum()
-    app_usage = app_usage / app_usage.sum() * 100
+    # Correlation heatmap
+    behavior_metrics = ['session_count', 'total_duration', 'total_traffic']
+    corr_matrix = metrics[behavior_metrics].corr()
     
-    # Create treemap
-    fig = px.treemap(
-        names=app_usage.index,
-        parents=['Applications'] * len(app_usage),
-        values=app_usage.values,
-        title='Application Usage Distribution (%)'
-    )
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # 5. User Behavior Patterns
-    st.write("#### User Behavior Patterns")
-    
-    # Calculate average metrics per cluster
-    cluster_metrics = engagement_analyzer.user_metrics.groupby('cluster').agg({
-        'session_count': 'mean',
-        'total_duration': 'mean',
-        'total_traffic': 'mean'
-    }).round(2)
-    
-    # Create radar chart
-    categories = ['Session Count', 'Duration', 'Traffic']
-    fig = go.Figure()
-    
-    for cluster in cluster_metrics.index:
-        values = cluster_metrics.loc[cluster].values.tolist()
-        # Normalize values for better visualization
-        values = (values - np.min(values)) / (np.max(values) - np.min(values))
-        values = values.tolist()
-        
-        fig.add_trace(go.Scatterpolar(
-            r=values,
-            theta=categories,
-            name=f'Cluster {cluster}'
-        ))
-    
-    fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
-        showlegend=True,
-        title='Cluster Behavior Patterns'
+    fig = px.imshow(
+        corr_matrix,
+        title='Correlation between User Metrics',
+        labels=dict(color="Correlation"),
+        color_continuous_scale='RdBu'
     )
     st.plotly_chart(fig, use_container_width=True)
 
-def main():
-    st.title("📱 Telecom User Engagement Analysis")
+def show_experience_page(data):
+    st.header("🎯 User Experience Analysis")
     
-    # Load data
-    with st.spinner("Loading data..."):
-        df = load_data()
+    experience_analyzer = ExperienceAnalyzer(data)
     
-    if df is not None:
-        # Initialize engagement analyzer
-        engagement_analyzer = UserEngagementAnalyzer(df)
-        
-        # Sidebar navigation
-        st.sidebar.title("Navigation")
-        page = st.sidebar.radio(
-            "Select a page",
-            ["Overview", "User Engagement", "Application Usage", "Clustering Analysis", "Advanced Analysis"]
-        )
-        
-        if page == "Overview":
-            st.header("Overview")
-            st.write("""
-            This dashboard analyzes user engagement in telecom data using various metrics:
-            - Session frequency
-            - Session duration
-            - Total traffic
-            
-            Use the sidebar to navigate through different analyses.
-            """)
-            
-            # Display basic statistics
-            st.subheader("Basic Statistics")
-            st.dataframe(engagement_analyzer.user_metrics.describe())
-        
-        elif page == "User Engagement":
-            st.header("User Engagement Analysis")
-            plot_engagement_metrics(engagement_analyzer)
-            show_top_users(engagement_analyzer)
-        
-        elif page == "Application Usage":
-            st.header("Application Usage Analysis")
-            plot_app_usage(engagement_analyzer)
-            
-            # Show top users per application
-            st.subheader("Top Users per Application")
-            top_app_users = engagement_analyzer.get_top_users_per_app()
-            app_tabs = st.tabs(list(top_app_users.keys()))
-            for tab, (app, users) in zip(app_tabs, top_app_users.items()):
-                with tab:
-                    st.dataframe(users)
-        
-        elif page == "Clustering Analysis":
-            st.header("User Clustering Analysis")
-            plot_clustering_results(engagement_analyzer)
-        
-        elif page == "Advanced Analysis":
-            st.header("Advanced Analysis")
-            plot_advanced_analysis(engagement_analyzer)
+    # Throughput Analysis
+    st.subheader("📶 Network Performance")
+    col1, col2 = st.columns(2)
     
-    else:
-        st.error("Failed to load data. Please check if the data file exists and is accessible.")
+    with col1:
+        throughput = experience_analyzer.analyze_throughput_distribution()
+        if throughput is not None:
+            # Convert to DataFrame for plotting
+            df_throughput = throughput.head(10).reset_index()
+            fig = px.bar(df_throughput, 
+                        x='Handset Type', 
+                        y='mean',
+                        title="Average Throughput by Handset Type",
+                        labels={'mean': 'Average Throughput (kbps)', 
+                               'Handset Type': 'Device Model'})
+            fig.update_layout(xaxis_tickangle=-45)
+            st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        # User clusters
+        clusters = experience_analyzer.cluster_users(k=3)
+        if clusters is not None:
+            cluster_counts = pd.Series(clusters).value_counts()
+            fig = px.pie(values=cluster_counts.values, 
+                        names=cluster_counts.index,
+                        title="User Experience Clusters",
+                        labels={'index': 'Cluster', 'value': 'Number of Users'})
+            st.plotly_chart(fig, use_container_width=True)
 
 if __name__ == "__main__":
     main()
