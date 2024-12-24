@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from user_overview_analysis import UserOverviewAnalyzer
 from user_engagement_analysis import UserEngagementAnalyzer
+from experience_analysis import ExperienceAnalyzer
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
@@ -61,21 +62,16 @@ def print_section_header(title):
     print(f" {title} ")
     print("="*50)
 
-def main():
-    # Load data
-    print_section_header("Loading Data")
-    df = load_data()
+def analyze_user_overview(data):
+    """Analyze user overview metrics."""
+    print("\nTask 1: User Overview Analysis")
+    print("=" * 50)
     
-    if df is None:
-        print("Failed to load data. Please check the data path.")
-        return
-    
-    # Task 1: User Overview Analysis
-    print_section_header("Task 1: User Overview Analysis")
-    overview_analyzer = UserOverviewAnalyzer(df)
+    # Initialize overview analyzer
+    overview_analyzer = UserOverviewAnalyzer(data)
     
     # Task 1.1: Handset Analysis
-    print_section_header("Task 1.1 - Handset Analysis")
+    print("\nTask 1.1 - Handset Analysis")
     handset_results = overview_analyzer.analyze_handsets()
     
     print("\n1. Top 10 Handsets:")
@@ -90,7 +86,7 @@ def main():
         print(handsets)
     
     # Task 1.2: User Behavior Analysis
-    print_section_header("Task 1.2 - User Behavior Analysis")
+    print("\nTask 1.2 - User Behavior Analysis")
     user_metrics = overview_analyzer.analyze_user_behavior()
     
     print("\n1. Basic Statistics:")
@@ -99,13 +95,17 @@ def main():
     print("\n2. Data Usage by Duration Decile:")
     decile_stats = user_metrics.groupby('duration_decile', observed=True)['total_data'].agg(['mean', 'count'])
     print(decile_stats)
+
+def analyze_user_engagement(data):
+    """Analyze user engagement metrics."""
+    print("\nTask 2: User Engagement Analysis")
+    print("=" * 50)
     
-    # Task 2: User Engagement Analysis
-    print_section_header("Task 2: User Engagement Analysis")
-    engagement_analyzer = UserEngagementAnalyzer(df)
+    # Initialize engagement analyzer
+    engagement_analyzer = UserEngagementAnalyzer(data)
     
     # Task 2.1: Top Users and Clustering
-    print_section_header("Task 2.1 - User Engagement Metrics")
+    print("\nTask 2.1 - User Engagement Metrics")
     
     # Get top users per metric
     top_users = engagement_analyzer.get_top_users()
@@ -133,8 +133,88 @@ def main():
     # Generate visualizations
     print("\n5. Generating engagement analysis visualizations...")
     engagement_analyzer.plot_engagement_analysis()
+
+def analyze_user_experience(data):
+    """Analyze user experience metrics."""
+    print("\nTask 3: Experience Analytics")
+    print("=" * 50)
     
-    print("\nAnalysis complete! Check the 'plots' directory for visualizations.")
+    # Initialize experience analyzer
+    experience_analyzer = ExperienceAnalyzer(data)
+    
+    # Task 3.1: Aggregate user metrics
+    print("\nTask 3.1: Aggregated User Metrics")
+    print("-" * 30)
+    user_metrics = experience_analyzer.aggregate_user_metrics()
+    print(user_metrics.head())
+    
+    # Task 3.2: Analyze extreme values
+    print("\nTask 3.2: Extreme Values Analysis")
+    print("-" * 30)
+    
+    # TCP analysis
+    tcp_values = experience_analyzer.get_extreme_values('Total TCP Retrans')
+    print("\nTCP Retransmission Values:")
+    print(f"Top 10: {tcp_values['top']}")
+    print(f"Bottom 10: {tcp_values['bottom']}")
+    print(f"Most Frequent: {tcp_values['most_frequent']}")
+    
+    # RTT analysis
+    rtt_values = experience_analyzer.get_extreme_values('Avg RTT')
+    print("\nRTT Values:")
+    print(f"Top 10: {rtt_values['top']}")
+    print(f"Bottom 10: {rtt_values['bottom']}")
+    print(f"Most Frequent: {rtt_values['most_frequent']}")
+    
+    # Throughput analysis
+    throughput_values = experience_analyzer.get_extreme_values('Avg Throughput')
+    print("\nThroughput Values:")
+    print(f"Top 10: {throughput_values['top']}")
+    print(f"Bottom 10: {throughput_values['bottom']}")
+    print(f"Most Frequent: {throughput_values['most_frequent']}")
+    
+    # Task 3.3: Distribution analysis
+    print("\nTask 3.3: Distribution Analysis")
+    print("-" * 30)
+    
+    # Throughput distribution
+    throughput_stats, _ = experience_analyzer.analyze_throughput_distribution()
+    print("\nThroughput Distribution per Handset Type:")
+    print(throughput_stats)
+    
+    # TCP retransmission analysis
+    tcp_stats, _ = experience_analyzer.analyze_tcp_retransmission()
+    print("\nTCP Retransmission per Handset Type:")
+    print(tcp_stats)
+    
+    # Task 3.4: User clustering
+    print("\nTask 3.4: User Experience Clustering")
+    print("-" * 30)
+    cluster_stats, _ = experience_analyzer.cluster_users()
+    print("\nCluster Statistics:")
+    print(cluster_stats)
+    
+    # Get cluster descriptions
+    cluster_descriptions = experience_analyzer.get_cluster_descriptions()
+    print("\nCluster Descriptions:")
+    for cluster, description in cluster_descriptions.items():
+        print(f"\n{description}")
+
+def main():
+    # Load data
+    data = load_data()
+    
+    if data is not None:
+        # Run Task 1: User Overview Analysis
+        analyze_user_overview(data)
+        
+        # Run Task 2: User Engagement Analysis
+        analyze_user_engagement(data)
+        
+        # Run Task 3: Experience Analytics
+        analyze_user_experience(data)
+    else:
+        print("Failed to load data. Please check if the data file exists and is accessible.")
 
 if __name__ == "__main__":
     main()

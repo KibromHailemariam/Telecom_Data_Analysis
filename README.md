@@ -30,6 +30,11 @@ A comprehensive dashboard for analyzing telecom user engagement patterns and beh
 - Application usage patterns
 - User behavior patterns through radar charts
 
+### 6. Experience Analytics
+- User experience metrics analysis
+- Performance analysis
+- User segmentation based on experience
+
 ## Installation
 
 1. Clone the repository:
@@ -70,7 +75,8 @@ telecom-analysis/
 │   ├── dashboard.py
 │   ├── main.py
 │   ├── user_engagement_analysis.py
-│   └── user_overview_analysis.py
+│   ├── user_overview_analysis.py
+│   └── experience_analytics.py
 ├── requirements.txt
 └── README.md
 ```
