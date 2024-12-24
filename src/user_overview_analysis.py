@@ -22,7 +22,7 @@ class UserOverviewAnalyzer:
             'Social Media DL (Bytes)', 'Social Media UL (Bytes)',
             'Google DL (Bytes)', 'Google UL (Bytes)',
             'Email DL (Bytes)', 'Email UL (Bytes)',
-            'YouTube DL (Bytes)', 'YouTube UL (Bytes)',
+            'Youtube DL (Bytes)', 'Youtube UL (Bytes)',
             'Netflix DL (Bytes)', 'Netflix UL (Bytes)',
             'Gaming DL (Bytes)', 'Gaming UL (Bytes)',
             'Other DL (Bytes)', 'Other UL (Bytes)'

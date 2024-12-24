@@ -1,98 +1,91 @@
-# Telecom User Overview Analysis
+# Telecom User Engagement Analysis Dashboard
 
-## Project Overview
-This project analyzes telecom user behavior and handset usage patterns, focusing on understanding user preferences and data consumption patterns.
+A comprehensive dashboard for analyzing telecom user engagement patterns and behaviors.
 
-## Task 1: User Overview Analysis
+## Features
 
-### Analysis Components
+### 1. Overview
+- Basic statistics about user engagement
+- Summary metrics and data distribution
 
-1. **Handset Analysis**
-   - Identifies top 10 handsets used by customers
-   - Analyzes top 3 handset manufacturers
-   - Shows top 5 handsets per manufacturer
-   - Calculates market share for manufacturers
+### 2. User Engagement Analysis
+- Session frequency distribution
+- Total traffic distribution
+- Top users analysis
 
-2. **User Behavior Analysis**
-   - Session count and duration analysis
-   - Data consumption patterns
-   - Usage trends across different applications
-   - User segmentation by duration deciles
+### 3. Application Usage Analysis
+- Total traffic by application
+- Top users per application
+- Application usage patterns
 
-3. **Application Usage Analysis**
-   - Data usage distribution across applications
-   - Active users per application
-   - Upload/download patterns
-   - Application correlations
+### 4. Clustering Analysis
+- K-means clustering of users
+- Cluster characteristics visualization
+- User distribution across clusters
 
-4. **Statistical Analysis**
-   - Descriptive statistics
-   - Correlation analysis
-   - Principal Component Analysis (PCA)
-   - Data distribution analysis
+### 5. Advanced Analysis
+- Correlation analysis between engagement metrics
+- Time-based usage patterns
+- User segmentation analysis
+- Application usage patterns
+- User behavior patterns through radar charts
 
-### Visualizations Generated
-- Top handsets distribution
-- Manufacturer market share
-- Data usage by duration decile
-- Session distribution
-- Application usage distribution
-- Active users per application
-- Application correlation matrix
-- PCA analysis results
+## Installation
 
-## Setup and Installation
-
-### Prerequisites
-- Python 3.8+
-- Required packages listed in requirements.txt
-
-### Installation
+1. Clone the repository:
 ```bash
-# Create and activate virtual environment (optional but recommended)
+git clone https://github.com/yourusername/telecom-analysis.git
+cd telecom-analysis
+```
+
+2. Create a virtual environment and activate it:
+```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-# Install dependencies
+3. Install dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
-### Data Preparation
-1. Place your telecom XDR data file in the `data` directory
-2. Ensure the data file is named `xdr_data.parquet`
+## Usage
 
-### Running the Analysis
+1. Place your telecom data file (xdr_data.parquet) in the `data` directory
+
+2. Run the Streamlit dashboard:
 ```bash
-python src/main.py
+streamlit run src/dashboard.py
 ```
 
-### Output
-The analysis will generate:
-1. Detailed statistics in the console output
-2. Visualizations in the `plots` directory
+3. Access the dashboard in your web browser at http://localhost:8501
 
 ## Project Structure
+
 ```
-.
-├── data/               # Data directory
+telecom-analysis/
+├── data/
 │   └── xdr_data.parquet
-├── plots/              # Generated visualizations
-├── src/               
-│   ├── main.py              # Main script to run analysis
-│   └── user_overview_analysis.py  # Analysis implementation
-├── requirements.txt    # Project dependencies
-└── README.md          # Project documentation
+├── src/
+│   ├── dashboard.py
+│   ├── main.py
+│   ├── user_engagement_analysis.py
+│   └── user_overview_analysis.py
+├── requirements.txt
+└── README.md
 ```
 
-## Results
-The analysis provides insights into:
-1. Most popular handsets and manufacturers
-2. User behavior patterns and preferences
-3. Application usage distribution
-4. Data consumption patterns
-5. Statistical relationships between different metrics
+## Dependencies
 
-Check the generated plots in the `plots` directory for visual representations of the analysis results.
+- pandas
+- numpy
+- streamlit
+- plotly
+- scikit-learn
+- matplotlib
+- seaborn
+- kneed
 
 ## License
+
 MIT License
